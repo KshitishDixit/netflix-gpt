@@ -2,8 +2,11 @@ import React, { useEffect, useRef } from "react";
 import Header from "./Header";
 import { useState } from "react";
 import { checkValidateData } from '../../utils/validation'
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "../../utils/firebase";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addUser } from "../../utils/slices/userSlice";
 
 const Login = () => {
     const [isSignInForm, setIsSignInForm] = useState(true);
@@ -11,6 +14,8 @@ const Login = () => {
     const email = useRef(null)
     const password = useRef(null)
     const name = useRef(null)
+    const navigate = useNavigate()
+    const dispatch = useDispatch()
 
     const toggleSignInForm = () => {
         setIsSignInForm(!isSignInForm);
@@ -26,14 +31,26 @@ const Login = () => {
         const message = checkValidateData(isSignInForm, emailValue, passwordValue, nameValue)
         setError(message)
         if (!message) {
-            
+
             if (!isSignInForm) {
 
 
                 createUserWithEmailAndPassword(auth, emailValue, passwordValue)
                     .then((userCredential) => {
-                        
+
                         const user = userCredential.user;
+                        const { uid, email } = user
+                        updateProfile(user, {
+                            displayName: nameValue,
+                        }).then(() => {
+
+                            dispatch(addUser({ uid, email, displayName: nameValue }))
+                            navigate("/browse")
+                        }).catch((error) => {
+                            // An error occurred
+                            // ...
+                        });
+
                         // ...
                     })
                     .catch((error) => {
@@ -45,12 +62,13 @@ const Login = () => {
                 signInWithEmailAndPassword(auth, emailValue, passwordValue)
                     .then((userCredential) => {
                         // Signed in 
-                        
+
                         const user = userCredential.user;
+                        navigate("/browse")
                         // ...
                     })
                     .catch((error) => {
-                        
+
                         const errorCode = error.code;
                         const errorMessage = error.message;
                         setError("User Not Found")

@@ -1,5 +1,5 @@
 export const checkValidateData = (isSignIn, email, password, name) => {
-    deb
+    
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(email);
 
   const isPasswordValid =
